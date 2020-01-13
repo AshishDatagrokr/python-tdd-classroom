@@ -1,0 +1,8 @@
+24
+select a.sr_no, a.Transaction_date from udm.vehicle_fuel_card_transactions a inner join ( select cc_no, tmp, min from ( select cc_no, tmp, partion_count, timestamp_diff(tmp, lead_tmp, minute) as min from ( select CC_NO, tmp, COUNT(tmp) OVER (partition BY cc_no) AS partion_count, LAG(tmp) OVER (order by cc_no) as lag_tmp, LEAD(tmp) OVER (order by cc_no ) as lead_tmp from ( select substr (Credit_Card_No, -5) as CC_NO, Transaction_date as tmp from udm.vehicle_fuel_card_transactions WHERE cast(Transaction_date as date) between "{val_st_dt}" and "{val_end_dt}" ) ) ) where min in (1,10) ) b on a.Transaction_date = b.tmp and substr (a.Credit_Card_No, -5) = b.cc_no ;
+
+
+25
+
+select a.sr_no, a.Transaction_date from udm.vehicle_fuel_card_transactions a inner join ( select vehicle_no, tmp, min from ( select vehicle_no, tmp, multi_driver_cnt, timestamp_diff(tmp, lead_tmp, minute) as min from ( select vehicle_no, driver_pin, tmp, COUNT(driver_pin) OVER (partition BY vehicle_no) AS multi_driver_cnt, LAG(tmp) OVER (order by vehicle_no, driver_pin) as lag_tmp, LEAD(tmp) OVER (order by vehicle_no, driver_pin ) as lead_tmp from ( select driver_pin, vehicle_no, Transaction_date as tmp from udm.vehicle_fuel_card_transactions WHERE cast(Transaction_date as date) between "{val_st_dt}" and "{val_end_dt}" and Product_name in ("PREM DSL", "DIESEL", "UNLEADED") ) ) where multi_driver_cnt >1 ) where min in (1,10) ) b on a.Transaction_date = b.tmp and a.vehicle_no = b.vehicle_no ;
+ 
